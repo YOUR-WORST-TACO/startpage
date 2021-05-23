@@ -1,16 +1,23 @@
 import * as React from 'react';
+import {createUseStyles} from "react-jss";
+import {useEffect, useState} from "react";
 
-import Drawer from "@material-ui/core/Drawer";
-import SettingsIcon from '@material-ui/icons/Settings';
-import ClickAwayListener from '@material-ui/core/ClickAwayListener';
+// @material-ui
 import Button from '@material-ui/core/Button';
 import Box from '@material-ui/core/Box';
 import Typography from '@material-ui/core/Typography';
-import FormControl from '@material-ui/core/FormControl';
 import Grid from '@material-ui/core/Grid';
-import {createUseStyles} from "react-jss";
-import {useEffect, useState} from "react";
-import {ChromePicker} from 'react-color'
+import Dialog from '@material-ui/core/Dialog';
+import DialogContent from '@material-ui/core/DialogContent';
+import DialogContentText from '@material-ui/core/DialogContentText';
+import List from '@material-ui/core/List';
+import DialogTitle from '@material-ui/core/DialogTitle';
+
+// local modules
+import ColorPicker from "./ColorPicker";
+import MethodsDialog from "./MethodsDialog";
+import C from './C';
+import defaults from '../defaults';
 
 const useStyles = createUseStyles({
     root: {
@@ -18,34 +25,6 @@ const useStyles = createUseStyles({
         margin: '0 auto',
         backgroundColor: '#fff',
         padding: '20px',
-    },
-    swatch: {
-        width: '100%',
-        height: '100%',
-        padding: '7px',
-        background: '#fff',
-        borderRadius: '5px',
-        boxShadow: 'inset 0px 0px 7px -2px rgba(0,0,0,.5)',
-        display: 'inline-block',
-        cursor: 'pointer',
-        boxSizing: 'border-box'
-    },
-    color: {
-        width: '100%',
-        height: '100%',
-        borderRadius: '4px',
-        boxSizing: 'border-box'
-    },
-    popover: {
-        position: 'absolute',
-        zIndex: '2',
-    },
-    cover: {
-        position: 'fixed',
-        top: '0px',
-        right: '0px',
-        bottom: '0px',
-        left: '0px',
     },
     header: {
         paddingBottom: '30px'
@@ -66,127 +45,100 @@ const useStyles = createUseStyles({
     }
 });
 
-const C = (props) => {
-    return (
-        <span
-            style={{
-                color: props.color
-            }}
-        >
-            {props.children}
-        </span>
-    )
-}
-
-
-const ColorPicker = (props) => {
-    const classes = useStyles();
-
-    const [showPicker, setShowPicker] = useState(false);
-
-    const colorChangeHandler = (color) => {
-        props.onChange(color);
-    }
-
-    return (
-        <>
-            <div className={classes.swatch} onClick={() => setShowPicker(!showPicker)}>
-                <div
-                    style={{
-                        backgroundColor: props.color
-                    }}
-                    className={classes.color}
-                />
-            </div>
-            {showPicker ? <div className={classes.popover}>
-                <div className={classes.cover} onClick={() => setShowPicker(!showPicker)}/>
-                <ChromePicker color={props.color} onChange={colorChangeHandler}/>
-            </div> : null}
-        </>
-    )
-};
-
 export default (props) => {
     const classes = useStyles();
-    const [open, setOpen] = useState(false);
-    const [settings, setSettings] = useState();
 
-    const settingsClick = () => {
-        setOpen(!open);
-    }
-
-    const drawerClickAwayHandler = () => {
-        if (open) {
-            setOpen(false);
-        }
-    }
+    const [openMethods, setOpenMethods] = useState(false);
 
     const bgColorHandler = (color) => {
         localStorage.setItem('backgroundColor', color.hex);
         props.onChange({
-            ...props.settings,
-            backgroundColor: color.hex
+            type: 'setting',
+            changes: {
+                backgroundColor: color.hex
+            }
         });
     }
 
     const promptColorHandler = (color) => {
         localStorage.setItem('promptColor', color.hex);
         props.onChange({
-            ...props.settings,
-            promptColor: color.hex
+            type: 'setting',
+            changes: {
+                promptColor: color.hex
+            }
         });
     }
 
     const contentColorHandler = (color) => {
         localStorage.setItem('contentColor', color.hex);
         props.onChange({
-            ...props.settings,
-            contentColor: color.hex
+            type: 'setting',
+            changes: {
+                contentColor: color.hex
+            }
         });
     }
 
     const specialColorHandler = (color) => {
         localStorage.setItem('specialColor', color.hex);
         props.onChange({
-            ...props.settings,
-            specialColor: color.hex
+            type: 'setting',
+            changes: {
+                specialColor: color.hex
+            }
         });
     }
 
     const errorColorHandler = (color) => {
         localStorage.setItem('errorColor', color.hex);
         props.onChange({
-            ...props.settings,
-            errorColor: color.hex
+            type: 'setting',
+            changes: {
+                errorColor: color.hex
+            }
         });
     }
 
     const resetColors = () => {
-        localStorage.setItem('backgroundColor', '#0b091f');
-        localStorage.setItem('promptColor', '#dcd05d');
-        localStorage.setItem('contentColor', '#ffffff');
-        localStorage.setItem('errorColor', '#de8080');
-        localStorage.setItem('specialColor', '#8492e2');
+        localStorage.setItem('backgroundColor', defaults.backgroundColor);
+        localStorage.setItem('promptColor', defaults.promptColor);
+        localStorage.setItem('contentColor', defaults.contentColor);
+        localStorage.setItem('errorColor', defaults.errorColor);
+        localStorage.setItem('specialColor', defaults.specialColor);
         props.onChange({
-            ...props.settings,
-            backgroundColor: '#0b091f',
-            promptColor: '#dcd05d',
-            contentColor: '#ffffff',
-            errorColor: '#de8080',
-            specialColor: '#8492e2'
+            type: 'setting',
+            changes: {
+                ...props.settings,
+                backgroundColor: defaults.backgroundColor,
+                promptColor: defaults.promptColor,
+                contentColor: defaults.contentColor,
+                errorColor: defaults.errorColor,
+                specialColor: defaults.specialColor
+            }
         });
     }
 
-    useEffect(() => {
-
-    }, [settings]);
+    const handleMethodsClose = () => {
+        setOpenMethods(false);
+    }
+    const handleMethodsChange = (event) => {
+        props.onChange();
+    }
 
     return (
         <div className={classes.root}>
             <Box className={classes.header}>
                 <Button variant="contained" color="primary" onClick={props.onClose}>Close</Button>
-                <Button className={classes.resetButton} variant="contained" color="secondary" onClick={resetColors}>Reset Colors</Button>
+                <Button className={classes.resetButton} variant="contained" color="secondary" onClick={resetColors}>Reset
+                    Colors</Button>
             </Box>
+            <MethodsDialog
+                open={openMethods}
+                methods={props.methods}
+                onClose={handleMethodsClose}
+                onChange={handleMethodsChange}
+            />
             <Grid container spacing={3}>
                 <Grid item xs={4}>
                     <ColorPicker
@@ -195,7 +147,7 @@ export default (props) => {
                     />
                 </Grid>
                 <Grid item xs={8}>
-                    <Typography variant="h5">Background Color</Typography>
+                    <Typography align="right" variant="h5">Background Color</Typography>
                 </Grid>
                 <Grid item xs={4}>
                     <ColorPicker
@@ -204,7 +156,7 @@ export default (props) => {
                     />
                 </Grid>
                 <Grid item xs={8}>
-                    <Typography variant="h5">Prompt Text Color</Typography>
+                    <Typography align="right" variant="h5">Prompt Text Color</Typography>
                 </Grid>
                 <Grid item xs={4}>
                     <ColorPicker
@@ -213,7 +165,7 @@ export default (props) => {
                     />
                 </Grid>
                 <Grid item xs={8}>
-                    <Typography variant="h5">Content Text Color</Typography>
+                    <Typography align="right" variant="h5">Content Text Color</Typography>
                 </Grid>
                 <Grid item xs={4}>
                     <ColorPicker
@@ -222,7 +174,7 @@ export default (props) => {
                     />
                 </Grid>
                 <Grid item xs={8}>
-                    <Typography variant="h5">Special Text Color</Typography>
+                    <Typography align="right" variant="h5">Special Text Color</Typography>
                 </Grid>
                 <Grid item xs={4}>
                     <ColorPicker
@@ -231,7 +183,10 @@ export default (props) => {
                     />
                 </Grid>
                 <Grid item xs={8}>
-                    <Typography variant="h5">Error Text Color</Typography>
+                    <Typography align="right" variant="h5">Error Text Color</Typography>
+                </Grid>
+                <Grid item xs={12}>
+                    <Button variant="contained" onClick={() => setOpenMethods(true)}>Search Engines/Links</Button>
                 </Grid>
             </Grid>
             <div
@@ -242,7 +197,7 @@ export default (props) => {
             >
                 <Typography variant="h5">
                     <C color={props.settings.promptColor}>
-                        {">"}&nbsp;
+                        {"> "}
                     </C>
                     <C color={props.settings.contentColor}>
                         ls
@@ -281,7 +236,7 @@ export default (props) => {
                 </Typography>
                 <Typography variant="h5">
                     <C color={props.settings.promptColor}>
-                        {">"}&nbsp;
+                        {"> "}
                     </C>
                     <C color={props.settings.contentColor}>
                         asdf
@@ -294,7 +249,7 @@ export default (props) => {
                 </Typography>
                 <Typography variant="h5">
                     <C color={props.settings.promptColor}>
-                        {">"}&nbsp;
+                        {"> "}
                     </C>
                 </Typography>
             </div>

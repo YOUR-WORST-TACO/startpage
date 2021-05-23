@@ -1,12 +1,16 @@
 import * as React from 'react';
 import Terminal from 'react-console-emulator'
 import {createRef, useEffect, useState} from "react";
-import Settings from "./Settings";
-
 import {createUseStyles} from "react-jss";
+
+// @material-ui
 import SettingsIcon from "@material-ui/icons/Settings";
 import Drawer from "@material-ui/core/Drawer";
 
+// local modules
+import defaults from '../defaults';
+import Settings from "./Settings";
+import C from './C';
 
 const useStyles = createUseStyles({
     '@global': {
@@ -69,59 +73,6 @@ const useStyles = createUseStyles({
     }
 });
 
-const C = (props) => {
-    return (
-        <span
-            style={{
-                whiteSpace: 'pre-wrap',
-                color: props.color
-            }}
-        >
-            {props.children}
-        </span>
-    )
-}
-
-const defaultSearchEngines = [
-    {
-        name: 'google',
-        type: 'engine',
-        aliases: ['g'],
-        url: 'https://google.com/search',
-        query: 'q=',
-        delimiter: ' ',
-        uriEncode: true
-    },
-    {
-        name: 'duckduckgo',
-        type: 'engine',
-        aliases: ['duck', 'd'],
-        url: 'https://duckduckgo.com/search',
-        query: 'q=',
-        delimiter: ' ',
-        uriEncode: true
-    },
-    {
-        name: 'reddit',
-        type: 'engine',
-        aliases: ['r'],
-        url: 'https://reddit.com/search',
-        query: 'q=',
-        delimiter: ' ',
-        uriEncode: true
-
-    },
-    {
-        name: 'youtube',
-        type: 'engine',
-        aliases: ['yt', 'y'],
-        url: 'https://www.youtube.com/results',
-        query: 'search_query=',
-        delimiter: ' ',
-        uriEncode: true
-    }
-];
-
 const getOrSet = (key, value) => {
     let prop = localStorage.getItem(key);
     if (!prop) {
@@ -136,11 +87,11 @@ export default () => {
     const [childKey, setChildKey] = useState(0);
     const [shouldReloadMethods, setShouldReloadMethods] = useState(false);
     const [settings, setSettings] = useState({
-        backgroundColor: getOrSet('backgroundColor', '#0b091f'),
-        promptColor: getOrSet('promptColor', '#dcd05d'),
-        contentColor: getOrSet('contentColor', '#ffffff'),
-        errorColor: getOrSet('errorColor', '#de8080'),
-        specialColor: getOrSet('specialColor', '#8492e2')
+        backgroundColor: getOrSet('backgroundColor', defaults.backgroundColor),
+        promptColor: getOrSet('promptColor', defaults.promptColor),
+        contentColor: getOrSet('contentColor', defaults.contentColor),
+        errorColor: getOrSet('errorColor', defaults.errorColor),
+        specialColor: getOrSet('specialColor', defaults.specialColor)
     });
 
     // @ts-ignore
@@ -151,7 +102,7 @@ export default () => {
     const [methods, setMethods] = useState(
         JSON.parse(
             getOrSet('startpageMethods', JSON.stringify(
-                defaultSearchEngines
+                defaults.searchEngines
             ))
         )
     );
@@ -163,8 +114,7 @@ export default () => {
             clear: {
                 description: 'Clears terminal stdout.',
                 fn: () => {
-                    // @ts-ignore
-                    terminalRef.current.clearStdout()
+                    setShouldReloadMethods(true);
                     return;
                 }
             },
@@ -229,7 +179,7 @@ export default () => {
                                     const alias = method.aliases[i];
                                     returnArray.push(<C color={settings.specialColor}>{alias}</C>);
                                     if (i < method.aliases.length - 1) {
-                                        returnArray.push(<C color={settings.contentColor}>,&nbsp;</C>);
+                                        returnArray.push(<C color={settings.contentColor}>{", "}</C>);
                                     }
                                 }
                             }
@@ -335,14 +285,22 @@ export default () => {
         setShouldReloadMethods(true);
     }
 
+    const onSettingsChange = (event) => {
+        switch (event.type) {
+            case 'setting':
+                const tempSettings = {...settings};
+                const keys = Object.keys(event.changes);
+                for (const key of keys) {
+                    tempSettings[key] = event.changes[key];
+                }
+                setSettings(tempSettings);
+                break;
+        }
+    }
+
     const renderTerminal = () => {
         return (
             <div className={classes.fullHeight}>
-                <div className={classes.button} onClick={settingsClick}>
-                    <SettingsIcon
-                        className={classes.icon}
-                    />
-                </div>
                 <Terminal
                     key={childKey}
                     ref={terminalRef}
@@ -375,12 +333,18 @@ export default () => {
             }}
         >
             <div className={classes.wrapper}>
+                <div className={classes.button} onClick={settingsClick}>
+                    <SettingsIcon
+                        className={classes.icon}
+                    />
+                </div>
                 {renderTerminal()}
                 <Drawer anchor="right" open={settingsVisible}>
                     <Settings
                         settings={settings}
+                        methods={methods}
                         onClose={onSettingsClose}
-                        onChange={setSettings}
+                        onChange={onSettingsChange}
                     />
                 </Drawer>
             </div>
