@@ -18,15 +18,14 @@ const useStyles = createUseStyles({
         margin: '0 auto',
         backgroundColor: '#fff',
         padding: '20px',
-        marginTop: '20%'
     },
     swatch: {
         width: '100%',
         height: '100%',
         padding: '7px',
         background: '#fff',
-        borderRadius: '1px',
-        boxShadow: '0 0 0 1px rgba(0,0,0,.1)',
+        borderRadius: '5px',
+        boxShadow: 'inset 0px 0px 7px -2px rgba(0,0,0,.5)',
         display: 'inline-block',
         cursor: 'pointer',
         boxSizing: 'border-box'
@@ -34,7 +33,7 @@ const useStyles = createUseStyles({
     color: {
         width: '100%',
         height: '100%',
-        borderRadius: '2px',
+        borderRadius: '4px',
         boxSizing: 'border-box'
     },
     popover: {
@@ -50,17 +49,41 @@ const useStyles = createUseStyles({
     },
     header: {
         paddingBottom: '30px'
+    },
+    resetButton: {
+        float: "right"
+    },
+    exampleBackground: {
+        padding: '100px 20px',
+        borderRadius: '5px',
+        position: 'absolute',
+        width: 'calc(100% - 40px)',
+        boxSizing: 'border-box',
+        margin: '20px',
+        left: 0,
+        bottom: 0
     }
 });
+
+const C = (props) => {
+    return (
+        <span
+            style={{
+                color: props.color
+            }}
+        >
+            {props.children}
+        </span>
+    )
+}
+
 
 const ColorPicker = (props) => {
     const classes = useStyles();
 
     const [showPicker, setShowPicker] = useState(false);
-    const [color, setColor] = useState(props.color);
 
     const colorChangeHandler = (color) => {
-        setColor(color.hex);
         props.onChange(color);
     }
 
@@ -69,14 +92,14 @@ const ColorPicker = (props) => {
             <div className={classes.swatch} onClick={() => setShowPicker(!showPicker)}>
                 <div
                     style={{
-                        backgroundColor: color
+                        backgroundColor: props.color
                     }}
                     className={classes.color}
                 />
             </div>
             {showPicker ? <div className={classes.popover}>
                 <div className={classes.cover} onClick={() => setShowPicker(!showPicker)}/>
-                <ChromePicker color={color} onChange={colorChangeHandler}/>
+                <ChromePicker color={props.color} onChange={colorChangeHandler}/>
             </div> : null}
         </>
     )
@@ -85,8 +108,7 @@ const ColorPicker = (props) => {
 export default (props) => {
     const classes = useStyles();
     const [open, setOpen] = useState(false);
-    const [settings, setSettings] = useState(props.settings);
-    const [showBGColor, setShowBGColor] = useState(false);
+    const [settings, setSettings] = useState();
 
     const settingsClick = () => {
         setOpen(!open);
@@ -99,39 +121,59 @@ export default (props) => {
     }
 
     const bgColorHandler = (color) => {
-        setSettings({
-            ...settings,
-            backgroundColor: color.hex
-        })
         localStorage.setItem('backgroundColor', color.hex);
-        props.onChange(settings);
+        props.onChange({
+            ...props.settings,
+            backgroundColor: color.hex
+        });
     }
 
     const promptColorHandler = (color) => {
-        setSettings({
-            ...settings,
-            promptColor: color.hex
-        })
         localStorage.setItem('promptColor', color.hex);
-        props.onChange(settings);
+        props.onChange({
+            ...props.settings,
+            promptColor: color.hex
+        });
     }
 
     const contentColorHandler = (color) => {
-        setSettings({
-            ...settings,
-            contentColor: color.hex
-        })
         localStorage.setItem('contentColor', color.hex);
-        props.onChange(settings);
+        props.onChange({
+            ...props.settings,
+            contentColor: color.hex
+        });
+    }
+
+    const specialColorHandler = (color) => {
+        localStorage.setItem('specialColor', color.hex);
+        props.onChange({
+            ...props.settings,
+            specialColor: color.hex
+        });
     }
 
     const errorColorHandler = (color) => {
-        setSettings({
-            ...settings,
-            errorColor: color.hex
-        })
         localStorage.setItem('errorColor', color.hex);
-        props.onChange(settings);
+        props.onChange({
+            ...props.settings,
+            errorColor: color.hex
+        });
+    }
+
+    const resetColors = () => {
+        localStorage.setItem('backgroundColor', '#0b091f');
+        localStorage.setItem('promptColor', '#dcd05d');
+        localStorage.setItem('contentColor', '#ffffff');
+        localStorage.setItem('errorColor', '#de8080');
+        localStorage.setItem('specialColor', '#8492e2');
+        props.onChange({
+            ...props.settings,
+            backgroundColor: '#0b091f',
+            promptColor: '#dcd05d',
+            contentColor: '#ffffff',
+            errorColor: '#de8080',
+            specialColor: '#8492e2'
+        });
     }
 
     useEffect(() => {
@@ -142,12 +184,13 @@ export default (props) => {
         <div className={classes.root}>
             <Box className={classes.header}>
                 <Button variant="contained" color="primary" onClick={props.onClose}>Close</Button>
+                <Button className={classes.resetButton} variant="contained" color="secondary" onClick={resetColors}>Reset Colors</Button>
             </Box>
             <Grid container spacing={3}>
                 <Grid item xs={4}>
                     <ColorPicker
                         onChange={bgColorHandler}
-                        color={settings.backgroundColor}
+                        color={props.settings.backgroundColor}
                     />
                 </Grid>
                 <Grid item xs={8}>
@@ -156,7 +199,7 @@ export default (props) => {
                 <Grid item xs={4}>
                     <ColorPicker
                         onChange={promptColorHandler}
-                        color={settings.promptColor}
+                        color={props.settings.promptColor}
                     />
                 </Grid>
                 <Grid item xs={8}>
@@ -165,7 +208,7 @@ export default (props) => {
                 <Grid item xs={4}>
                     <ColorPicker
                         onChange={contentColorHandler}
-                        color={settings.contentColor}
+                        color={props.settings.contentColor}
                     />
                 </Grid>
                 <Grid item xs={8}>
@@ -173,15 +216,87 @@ export default (props) => {
                 </Grid>
                 <Grid item xs={4}>
                     <ColorPicker
+                        onChange={specialColorHandler}
+                        color={props.settings.specialColor}
+                    />
+                </Grid>
+                <Grid item xs={8}>
+                    <Typography variant="h5">Special Text Color</Typography>
+                </Grid>
+                <Grid item xs={4}>
+                    <ColorPicker
                         onChange={errorColorHandler}
-                        color={settings.errorColor}
+                        color={props.settings.errorColor}
                     />
                 </Grid>
                 <Grid item xs={8}>
                     <Typography variant="h5">Error Text Color</Typography>
                 </Grid>
             </Grid>
-
+            <div
+                style={{
+                    backgroundColor: props.settings.backgroundColor,
+                }}
+                className={classes.exampleBackground}
+            >
+                <Typography variant="h5">
+                    <C color={props.settings.promptColor}>
+                        {">"}&nbsp;
+                    </C>
+                    <C color={props.settings.contentColor}>
+                        ls
+                    </C>
+                </Typography>
+                <Typography variant="h5">
+                    <C color={props.settings.contentColor}>
+                        someFile
+                    </C>
+                </Typography>
+                <Typography variant="h5">
+                    <C color={props.settings.contentColor}>
+                        .bashrc
+                    </C>
+                </Typography>
+                <Typography variant="h5">
+                    <C color={props.settings.contentColor}>
+                        settings.json
+                    </C>
+                </Typography>
+                <Typography variant="h5">
+                    <C color={props.settings.specialColor}>
+                        someFolder
+                    </C>
+                    <C color={props.settings.contentColor}>
+                        {'/'}
+                    </C>
+                </Typography>
+                <Typography variant="h5">
+                    <C color={props.settings.specialColor}>
+                        node_modules
+                    </C>
+                    <C color={props.settings.contentColor}>
+                        {'/'}
+                    </C>
+                </Typography>
+                <Typography variant="h5">
+                    <C color={props.settings.promptColor}>
+                        {">"}&nbsp;
+                    </C>
+                    <C color={props.settings.contentColor}>
+                        asdf
+                    </C>
+                </Typography>
+                <Typography variant="h5">
+                    <C color={props.settings.errorColor}>
+                        Command not found: asdf
+                    </C>
+                </Typography>
+                <Typography variant="h5">
+                    <C color={props.settings.promptColor}>
+                        {">"}&nbsp;
+                    </C>
+                </Typography>
+            </div>
         </div>
     );
 };
