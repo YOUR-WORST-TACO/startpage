@@ -7,6 +7,7 @@ import {createUseStyles} from "react-jss";
 import SettingsIcon from "@material-ui/icons/Settings";
 import Drawer from "@material-ui/core/Drawer";
 
+
 const useStyles = createUseStyles({
     '@global': {
         '*': {
@@ -45,12 +46,14 @@ const useStyles = createUseStyles({
         pointerEvents: 'none'
     },
     icon: {
-        color: '#aaa',
+        // @ts-ignore
+        color: props => props.contentColor,
+        opacity: 0.5,
         '&:hover': {
-            color: '#fff'
+            opacity: 1
         },
         '&:active': {
-            color: '#aaa'
+            opacity: 0.5
         }
     },
     button: {
@@ -129,8 +132,6 @@ const getOrSet = (key, value) => {
 };
 
 export default () => {
-    const classes = useStyles();
-
     const [settingsVisible, setSettingsVisible] = useState(false);
     const [childKey, setChildKey] = useState(0);
     const [shouldReloadMethods, setShouldReloadMethods] = useState(false);
@@ -141,6 +142,10 @@ export default () => {
         errorColor: getOrSet('errorColor', '#de8080'),
         specialColor: getOrSet('specialColor', '#8492e2')
     });
+
+    // @ts-ignore
+    const classes = useStyles(settings);
+
     const terminalRef = createRef();
 
     const [methods, setMethods] = useState(
@@ -151,8 +156,10 @@ export default () => {
         )
     );
 
-    const [commands, setCommands] = useState(
-        {
+    const [commands, setCommands] = useState({})
+
+    const generateMethods = () => {
+        const commandList = {
             clear: {
                 description: 'Clears terminal stdout.',
                 fn: () => {
@@ -168,25 +175,25 @@ export default () => {
                     returnArray.push(<C color={settings.contentColor}>{"    "}</C>);
                     returnArray.push(<C color={settings.specialColor}>
                         {"clear   "}
-                        <C color={settings.contentColor}>- {commands.clear.description}</C>
+                        <C color={settings.contentColor}>- {commandList.clear.description}</C>
                     </C>);
                     returnArray.push(<br/>);
                     returnArray.push(<C color={settings.contentColor}>{"    "}</C>);
                     returnArray.push(<C color={settings.specialColor}>
                         {"help    "}
-                        <C color={settings.contentColor}>- {commands.help.description}</C>
+                        <C color={settings.contentColor}>- {commandList.help.description}</C>
                     </C>);
                     returnArray.push(<br/>);
                     returnArray.push(<C color={settings.contentColor}>{"    "}</C>);
                     returnArray.push(<C color={settings.specialColor}>
                         {"engines "}
-                        <C color={settings.contentColor}>- {commands.engines.description}</C>
+                        <C color={settings.contentColor}>- {commandList.engines.description}</C>
                     </C>);
                     returnArray.push(<br/>);
                     returnArray.push(<C color={settings.contentColor}>{"    "}</C>);
                     returnArray.push(<C color={settings.specialColor}>
                         {"links   "}
-                        <C color={settings.contentColor}>- {commands.links.description}</C>
+                        <C color={settings.contentColor}>- {commandList.links.description}</C>
                     </C>);
                     return returnArray;
                 }
@@ -238,11 +245,7 @@ export default () => {
                     return 'link';
                 }
             }
-        }
-    )
-
-    const generateMethods = () => {
-        const commandList = commands;
+        };
         for (const method of methods) {
             if (method.type === 'engine') {
                 const func = (...args) => {
@@ -336,7 +339,9 @@ export default () => {
         return (
             <div className={classes.fullHeight}>
                 <div className={classes.button} onClick={settingsClick}>
-                    <SettingsIcon className={classes.icon}/>
+                    <SettingsIcon
+                        className={classes.icon}
+                    />
                 </div>
                 <Terminal
                     key={childKey}
@@ -354,7 +359,7 @@ export default () => {
                 />
                 <div
                     style={{
-                        background: `linear-gradient(0deg, rgba(0,0,0,0) 80%, ${settings.backgroundColor} 100%)`,
+                        background: `linear-gradient(0deg, rgba(0,0,0,0) 85%, ${settings.backgroundColor} 100%)`,
                     }}
                     className={classes.shade}
                 />

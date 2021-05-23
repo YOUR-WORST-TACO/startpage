@@ -54,11 +54,12 @@ const useStyles = createUseStyles({
         float: "right"
     },
     exampleBackground: {
-        padding: '100px 20px',
+        padding: '20px 20px',
         borderRadius: '5px',
         position: 'absolute',
         width: 'calc(100% - 40px)',
         boxSizing: 'border-box',
+        boxShadow: 'inset 0px 0px 7px -2px rgba(0,0,0,1)',
         margin: '20px',
         left: 0,
         bottom: 0
