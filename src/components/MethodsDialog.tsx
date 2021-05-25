@@ -30,6 +30,9 @@ import {createUseStyles} from 'react-jss';
 import FormControl from '@material-ui/core/FormControl';
 import FormGroup from '@material-ui/core/FormGroup';
 import FormControlLabel from '@material-ui/core/FormControlLabel';
+import FormHelperText from '@material-ui/core/FormHelperText';
+import Snackbar from '@material-ui/core/Snackbar';
+import MuiAlert from '@material-ui/lab/Alert';
 import Checkbox from '@material-ui/core/Checkbox';
 
 // local modules
@@ -58,19 +61,17 @@ const useStyles = createUseStyles({
     }
 })
 
-const MethodsDialog = (props) => {
+const Alert = (props) => {
+    return <MuiAlert elevation={6} variant="filled" {...props} />;
+}
+
+const MethodsDialog = ({onClose, onChange, open, methods}) => {
     const classes = useStyles();
 
     const [dialogState, setDialogState] = useState(0);
     const [edit, setEdit] = useState(false);
-    const [editData, setEditData] = useState({
-        name: null,
-        type: null,
-        url: null,
-        query: null,
-        delimiter: null,
-        uriEncode: null
-    });
+    const [error, setError] = useState('');
+    const [success, setSuccess] = useState('');
 
     const [name, setName] = useState('');
     const [url, setUrl] = useState('');
@@ -80,8 +81,164 @@ const MethodsDialog = (props) => {
     const [aliases, setAliases] = useState([]);
     const [currentAlias, setCurrentAlias] = useState('');
 
+    const resetFields = () => {
+        setName('');
+        setUrl('');
+        setQuery('');
+        setDelimiter('');
+        setEncode(false);
+        setAliases([]);
+        setCurrentAlias('');
+    };
+
+    const handleMethodDelete = (engineName) => {
+        onChange(methods.filter(obj => {
+            return obj.name !== engineName;
+        }));
+
+        setSuccess(`Deleted ${engineName}.`);
+    };
+
+    const openEditMethodDialog = (engine) => {
+        switch (engine.type) {
+            case 'engine':
+                setName(engine.name);
+                setUrl(engine.url);
+                setAliases(engine.aliases);
+                setCurrentAlias('');
+                setQuery(engine.query);
+                setDelimiter(engine.delimiter);
+                setEncode(engine.uriEncode);
+
+                setEdit(true);
+                setDialogState(1);
+                break;
+            case 'link':
+                setName(engine.name);
+                setUrl(engine.url);
+
+                setEdit( true);
+                setDialogState(2);
+                break;
+        }
+    };
+
+    const openNewEngineDialog = () => {
+        resetFields();
+        setDialogState(1);
+    };
+
+    const openNewLinkDialog = () => {
+        resetFields();
+        setDialogState(2);
+    };
+
+    const closeChildDialogs = () => {
+        setDialogState(0);
+    }
+
+    const onEngineSave = (e) => {
+        e.preventDefault();
+
+        if (edit) {
+            const newMethods = methods.filter(obj => {
+                return obj.name !== name;
+            });
+            newMethods.push({
+                name,
+                type: 'engine',
+                aliases,
+                url,
+                query,
+                delimiter,
+                uriEncode: encode
+            });
+            onChange(newMethods);
+            setDialogState(0);
+            setSuccess(`Saved changes to ${name}.`);
+        } else {
+            if (!methods.find(obj => {
+                return obj.name === name
+            })) {
+
+                onChange([...methods, {
+                    name,
+                    type: 'engine',
+                    aliases,
+                    url,
+                    query,
+                    delimiter,
+                    uriEncode: encode
+                }]);
+
+                setSuccess(`New search engine ${name} added!`);
+
+                setDialogState(0);
+            } else {
+                setError('Search engine name must be unique!');
+            }
+        }
+    }
+
+    const onLinkSave = (e) => {
+        e.preventDefault();
+
+        if (edit) {
+            const newMethods = methods.filter(obj => {
+                return obj.name !== name;
+            });
+            newMethods.push({
+                name,
+                type: 'link',
+                url
+            });
+            onChange(newMethods);
+            setDialogState(0);
+            setSuccess(`Saved changes to ${name}.`);
+        } else {
+            if (!methods.find(obj => {
+                return obj.name === name
+            })) {
+
+                onChange([...methods, {
+                    name,
+                    type: 'link',
+                    url
+                }]);
+
+                setSuccess(`New link ${name} successfully added!`);
+
+                setDialogState(0);
+            } else {
+                setError('Link name must be unique!');
+            }
+        }
+    }
+
+    const handleAliasDelete = (alias) => {
+        setAliases((aliases) => aliases.filter((value) => value !== alias));
+    }
+
+    const handleAliasAdd = () => {
+        if (currentAlias !== '' && currentAlias !== ' ') {
+            if (!aliases.includes(currentAlias)) {
+                setAliases(oldArray => [...oldArray, currentAlias]);
+                setCurrentAlias('');
+            } else {
+                setCurrentAlias('');
+            }
+        } else {
+            setCurrentAlias('');
+        }
+    }
+
+    const handleDialogClose = () => {
+        setDialogState(0);
+        onClose();
+    }
+
     const buildMethodList = () => {
-        return props.methods.map((value) => {
+        return methods.map((value) => {
             return (
                 <ListItem key={value.name} button divider>
                     <ListItemIcon>
@@ -95,77 +252,22 @@ const MethodsDialog = (props) => {
                         secondary={value.url}
                     />
                     <ListItemSecondaryAction>
-                        <IconButton aria-label="change">
+                        <IconButton
+                            aria-label="change"
+                            onClick={() => openEditMethodDialog(value)}
+                        >
                             <EditIcon/>
                         </IconButton>
-                        <IconButton aria-label="delete">
+                        <IconButton
+                            aria-label="delete"
+                            onClick={() => handleMethodDelete(value.name)}
+                        >
                             <DeleteIcon/>
                         </IconButton>
                     </ListItemSecondaryAction>
                 </ListItem>
             );
         })
-    }
-
-    const resetFields = () => {
-        setName('');
-        setUrl('');
-        setQuery('');
-        setDelimiter('');
-        setEncode(false);
-        setAliases([]);
-        setCurrentAlias('');
-    };
-
-    const openNewEngineDialog = () => {
-        setName('')
-        setDialogState(1);
-    };
-
-    const openNewLinkDialog = () => {
-        setDialogState(2);
-    };
-
-    const closeChildDialogs = () => {
-        setDialogState(0);
-    }
-
-    const onEngineSave = (e) => {
-        e.preventDefault();
-        // TODO implement saving by sending
-        //      updated object using onChange
-        console.log(name);
-        console.log(url);
-        console.log(aliases);
-        console.log(query);
-        console.log(delimiter);
-        console.log(encode);
-        setDialogState(0);
-    }
-
-    const onLinkSave = (e) => {
-        e.preventDefault();
-        setDialogState(0);
-    }
-
-    const handleAliasDelete = (alias) => {
-        setAliases((aliases) => aliases.filter((value) => value !== alias));
-    }
-
-    const handleAliasAdd = () => {
-        if (currentAlias !== '') {
-            if (!aliases.includes(currentAlias)) {
-                setAliases(oldArray => [...oldArray, currentAlias]);
-                setCurrentAlias('');
-            } else {
-                setCurrentAlias('');
-            }
-        }
-    }
-
-    const handleDialogClose = () => {
-        setDialogState(0);
-        props.onClose();
     }
 
     const primaryDialog = () => (
@@ -181,7 +283,7 @@ const MethodsDialog = (props) => {
                     <Button className={classes.closeButton}
                             variant="contained"
                             color="secondary"
-                            onClick={props.onClose}
+                            onClick={onClose}
                     >
                         Close
                     </Button>
@@ -190,12 +292,19 @@ const MethodsDialog = (props) => {
         </>
     );
 
-
     const handleAliasEnter = (event) => {
-        if (event.keyCode === 13) {
+        if (event.keyCode === 32) {
             handleAliasAdd();
         }
-    }
+    };
+
+    const handleAliasOnChange = (event) => {
+        if (event.target.value === ' ') {
+            setCurrentAlias('');
+        } else {
+            setCurrentAlias(event.target.value);
+        }
+    };
 
     const openEngineDialog = () => (
         <>
@@ -228,7 +337,7 @@ const MethodsDialog = (props) => {
                             type="text"
                             onKeyDown={handleAliasEnter}
                             value={currentAlias}
-                            onChange={e => setCurrentAlias(e.target.value)}
+                            onChange={handleAliasOnChange}
                             endAdornment={
                                 <InputAdornment position="end">
                                     <IconButton aria-label="add-alias" onClick={handleAliasAdd}>
@@ -237,6 +346,7 @@ const MethodsDialog = (props) => {
                                 </InputAdornment>
                             }
                         />
+                        <FormHelperText id="alias-input-help">Press space between aliases</FormHelperText>
                     </FormControl>
                     <Paper component="ul" className={classes.chipBox}>
                         {aliases.map((value) => {
@@ -348,15 +458,26 @@ const MethodsDialog = (props) => {
     );
 
     return (
-
-        <Dialog maxWidth='lg' open={props.open} onClose={handleDialogClose} aria-labelledby="method-management-dialog">
-            {dialogState === 0
-                ? primaryDialog()
-                : dialogState === 1
-                    ? openEngineDialog()
-                    : openLinkDialog()
-            }
-        </Dialog>
+        <>
+            <Dialog maxWidth='lg' open={open} onClose={handleDialogClose} aria-labelledby="method-management-dialog">
+                <Snackbar open={error !== ''} autoHideDuration={6000} onClose={() => setError('')}>
+                    <Alert onClose={() => setError('')} severity="error">
+                        {error}
+                    </Alert>
+                </Snackbar>
+                <Snackbar open={success !== ''} autoHideDuration={6000} onClose={() => setSuccess('')}>
+                    <Alert onClose={() => setSuccess('')} severity="success">
+                        {success}
+                    </Alert>
+                </Snackbar>
+                {dialogState === 0
+                    ? primaryDialog()
+                    : dialogState === 1
+                        ? openEngineDialog()
+                        : openLinkDialog()
+                }
+            </Dialog>
+        </>
     );
 }
 

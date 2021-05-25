@@ -45,14 +45,14 @@ const useStyles = createUseStyles({
     }
 });
 
-export default (props) => {
+export default ({ onChange, onClose, settings, methods }) => {
     const classes = useStyles();
 
     const [openMethods, setOpenMethods] = useState(false);
 
     const bgColorHandler = (color) => {
         localStorage.setItem('backgroundColor', color.hex);
-        props.onChange({
+        onChange({
             type: 'setting',
             changes: {
                 backgroundColor: color.hex
@@ -62,7 +62,7 @@ export default (props) => {
 
     const promptColorHandler = (color) => {
         localStorage.setItem('promptColor', color.hex);
-        props.onChange({
+        onChange({
             type: 'setting',
             changes: {
                 promptColor: color.hex
@@ -72,7 +72,7 @@ export default (props) => {
 
     const contentColorHandler = (color) => {
         localStorage.setItem('contentColor', color.hex);
-        props.onChange({
+        onChange({
             type: 'setting',
             changes: {
                 contentColor: color.hex
@@ -82,7 +82,7 @@ export default (props) => {
 
     const specialColorHandler = (color) => {
         localStorage.setItem('specialColor', color.hex);
-        props.onChange({
+        onChange({
             type: 'setting',
             changes: {
                 specialColor: color.hex
@@ -92,7 +92,7 @@ export default (props) => {
 
     const errorColorHandler = (color) => {
         localStorage.setItem('errorColor', color.hex);
-        props.onChange({
+        onChange({
             type: 'setting',
             changes: {
                 errorColor: color.hex
@@ -106,10 +106,10 @@ export default (props) => {
         localStorage.setItem('contentColor', defaults.contentColor);
         localStorage.setItem('errorColor', defaults.errorColor);
         localStorage.setItem('specialColor', defaults.specialColor);
-        props.onChange({
+        onChange({
             type: 'setting',
             changes: {
-                ...props.settings,
+                ...settings,
                 backgroundColor: defaults.backgroundColor,
                 promptColor: defaults.promptColor,
                 contentColor: defaults.contentColor,
@@ -122,20 +122,23 @@ export default (props) => {
     const handleMethodsClose = (val) => {
         setOpenMethods(false);
     }
-    const handleMethodsChange = (event) => {
-        props.onChange();
+    const handleMethodsChange = (newMethods) => {
+        onChange({
+            type: 'method',
+            changes: newMethods
+        });
     }
 
     return (
         <div className={classes.root}>
             <Box className={classes.header}>
-                <Button variant="contained" color="primary" onClick={props.onClose}>Close</Button>
+                <Button variant="contained" color="primary" onClick={onClose}>Close</Button>
                 <Button className={classes.resetButton} variant="contained" color="secondary" onClick={resetColors}>Reset
                     Colors</Button>
             </Box>
             <MethodsDialog
                 open={openMethods}
-                methods={props.methods}
+                methods={methods}
                 onClose={handleMethodsClose}
                 onChange={handleMethodsChange}
             />
@@ -143,7 +146,7 @@ export default (props) => {
                 <Grid item xs={4}>
                     <ColorPicker
                         onChange={bgColorHandler}
-                        color={props.settings.backgroundColor}
+                        color={settings.backgroundColor}
                     />
                 </Grid>
                 <Grid item xs={8}>
@@ -152,7 +155,7 @@ export default (props) => {
                 <Grid item xs={4}>
                     <ColorPicker
                         onChange={promptColorHandler}
-                        color={props.settings.promptColor}
+                        color={settings.promptColor}
                     />
                 </Grid>
                 <Grid item xs={8}>
@@ -161,7 +164,7 @@ export default (props) => {
                 <Grid item xs={4}>
                     <ColorPicker
                         onChange={contentColorHandler}
-                        color={props.settings.contentColor}
+                        color={settings.contentColor}
                     />
                 </Grid>
                 <Grid item xs={8}>
@@ -170,7 +173,7 @@ export default (props) => {
                 <Grid item xs={4}>
                     <ColorPicker
                         onChange={specialColorHandler}
-                        color={props.settings.specialColor}
+                        color={settings.specialColor}
                     />
                 </Grid>
                 <Grid item xs={8}>
@@ -179,7 +182,7 @@ export default (props) => {
                 <Grid item xs={4}>
                     <ColorPicker
                         onChange={errorColorHandler}
-                        color={props.settings.errorColor}
+                        color={settings.errorColor}
                     />
                 </Grid>
                 <Grid item xs={8}>
@@ -191,64 +194,64 @@ export default (props) => {
             </Grid>
             <div
                 style={{
-                    backgroundColor: props.settings.backgroundColor,
+                    backgroundColor: settings.backgroundColor,
                 }}
                 className={classes.exampleBackground}
             >
                 <Typography variant="h5">
-                    <C color={props.settings.promptColor}>
+                    <C color={settings.promptColor}>
                         {"> "}
                     </C>
-                    <C color={props.settings.contentColor}>
+                    <C color={settings.contentColor}>
                         ls
                     </C>
                 </Typography>
                 <Typography variant="h5">
-                    <C color={props.settings.contentColor}>
+                    <C color={settings.contentColor}>
                         someFile
                     </C>
                 </Typography>
                 <Typography variant="h5">
-                    <C color={props.settings.contentColor}>
+                    <C color={settings.contentColor}>
                         .bashrc
                     </C>
                 </Typography>
                 <Typography variant="h5">
-                    <C color={props.settings.contentColor}>
+                    <C color={settings.contentColor}>
                         settings.json
                     </C>
                 </Typography>
                 <Typography variant="h5">
-                    <C color={props.settings.specialColor}>
+                    <C color={settings.specialColor}>
                         someFolder
                     </C>
-                    <C color={props.settings.contentColor}>
+                    <C color={settings.contentColor}>
                         {'/'}
                     </C>
                 </Typography>
                 <Typography variant="h5">
-                    <C color={props.settings.specialColor}>
+                    <C color={settings.specialColor}>
                         node_modules
                     </C>
-                    <C color={props.settings.contentColor}>
+                    <C color={settings.contentColor}>
                         {'/'}
                     </C>
                 </Typography>
                 <Typography variant="h5">
-                    <C color={props.settings.promptColor}>
+                    <C color={settings.promptColor}>
                         {"> "}
                     </C>
-                    <C color={props.settings.contentColor}>
+                    <C color={settings.contentColor}>
                         asdf
                     </C>
                 </Typography>
                 <Typography variant="h5">
-                    <C color={props.settings.errorColor}>
+                    <C color={settings.errorColor}>
                         Command not found: asdf
                     </C>
                 </Typography>
                 <Typography variant="h5">
-                    <C color={props.settings.promptColor}>
+                    <C color={settings.promptColor}>
                         {"> "}
                     </C>
                 </Typography>

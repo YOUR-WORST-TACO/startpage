@@ -109,6 +109,22 @@ export default () => {
 
     const [commands, setCommands] = useState({})
 
+    const updateMethods = (newMethods) => {
+        newMethods.sort((a,b) => (a.name > b.name) ? 1 : -1);
+        setMethods(newMethods);
+    };
+
+    /* TODO
+        - implement better way to copy commandList
+        - make engines function better
+            - possibly change query to contain everything but base url
+            - possibly make empty arg lists navigate to base url (preferred)
+    */
+
+    /* TODO
+        - implement color pallet manager in its own Dialog thing
+     */
+
     const generateMethods = () => {
         const commandList = {
             clear: {
@@ -192,7 +208,27 @@ export default () => {
             links: {
                 description: 'Show a list of available quick links',
                 fn: () => {
-                    return 'link';
+                    let returnArray = [];
+                    returnArray.push(<C color={settings.contentColor}>
+                        {"Usage: <"}
+                        <C color={settings.specialColor}>link</C>
+                        {">"}
+                    </C>);
+                    returnArray.push(<br/>);
+                    let maxLength = 0;
+                    for (const method of methods) {
+                        if (method.type === 'engine' && method.name.length > maxLength) {
+                            maxLength = method.name.length;
+                        }
+                    }
+                    for (const method of methods) {
+                        if (method.type === 'link') {
+                            returnArray.push(<C color={settings.contentColor}>{"    "}</C>);
+                            returnArray.push(<C color={settings.specialColor}>{method.name}</C>);
+                            returnArray.push(<br/>);
+                        }
+                    }
+                    return returnArray;
                 }
             }
         };
@@ -221,6 +257,18 @@ export default () => {
                         }
                     }
                 }
+            } else if (method.type === 'link') {
+                const func = () => {
+                    window.open(`${method.url}`, '_self');
+                };
+
+                if (!commandList[method.name]) {
+                    commandList[method.name] = {
+                        description: `Opens quick link ${method.name}.`,
+                        usage: `${method.name}`,
+                        fn: func
+                    };
+                }
             }
         }
         setCommands(commandList);
@@ -230,7 +278,6 @@ export default () => {
         generateMethods();
         setChildKey(childKey+1);
     }, [setCommands]);
-
 
     useEffect(() => {
         if (shouldReloadMethods) {
@@ -294,6 +341,10 @@ export default () => {
                     tempSettings[key] = event.changes[key];
                 }
                 setSettings(tempSettings);
+                break;
+            case 'method':
+                updateMethods(event.changes);
+                localStorage.setItem('startpageMethods', JSON.stringify(event.changes));
                 break;
         }
     }
