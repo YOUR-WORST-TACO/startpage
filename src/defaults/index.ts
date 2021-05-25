@@ -37,6 +37,11 @@ export default {
             query: 'search_query=',
             delimiter: ' ',
             uriEncode: true
+        },
+        {
+            name: 'stupidFix',
+            type: 'link',
+            url: 'https://stackoverflow.com/questions/54676966/push-method-in-react-hooks-usestate'
         }
     ],
     backgroundColor: '#0b091f',

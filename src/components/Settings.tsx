@@ -119,7 +119,7 @@ export default (props) => {
         });
     }
 
-    const handleMethodsClose = () => {
+    const handleMethodsClose = (val) => {
         setOpenMethods(false);
     }
     const handleMethodsChange = (event) => {
