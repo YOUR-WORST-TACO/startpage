@@ -73,6 +73,10 @@ const MethodsDialog = ({onClose, onChange, open, methods}) => {
     const [error, setError] = useState('');
     const [success, setSuccess] = useState('');
 
+    const [previousMethod, setPreviousMethod] = useState({
+        name: ''
+    });
+
     const [name, setName] = useState('');
     const [url, setUrl] = useState('');
     const [query, setQuery] = useState('');
@@ -100,6 +104,7 @@ const MethodsDialog = ({onClose, onChange, open, methods}) => {
     };
 
     const openEditMethodDialog = (engine) => {
+        setPreviousMethod(engine);
         switch (engine.type) {
             case 'engine':
                 setName(engine.name);
@@ -142,7 +147,7 @@ const MethodsDialog = ({onClose, onChange, open, methods}) => {
 
         if (edit) {
             const newMethods = methods.filter(obj => {
-                return obj.name !== name;
+                return obj.name !== previousMethod.name;
             });
             newMethods.push({
                 name,
@@ -185,7 +190,7 @@ const MethodsDialog = ({onClose, onChange, open, methods}) => {
 
         if (edit) {
             const newMethods = methods.filter(obj => {
-                return obj.name !== name;
+                return obj.name !== previousMethod.name;
             });
             newMethods.push({
                 name,
@@ -386,6 +391,7 @@ const MethodsDialog = ({onClose, onChange, open, methods}) => {
                                     name="engine-uri"
                                     value={encode}
                                     onChange={e => setEncode(e.target.checked)}
+                                    checked={encode}
                                 />
                             }/>
                         </FormGroup>
