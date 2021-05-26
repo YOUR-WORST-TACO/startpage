@@ -28,4 +28,10 @@ jobs:
       - name: action-yarn
         uses: sergioramos/yarn-actions@v6
         with:
-          args: yarn install
+          args: yarn install && yarn run build
+          
+      - name: copy to output
+        run: mkdir output && mv dist output && mv package.json output
+      
+      - name: list
+        run: cd output && ls
