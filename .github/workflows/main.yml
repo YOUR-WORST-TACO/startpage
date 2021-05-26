@@ -36,7 +36,7 @@ jobs:
           cmd: build
           
       - name: build archive
-        uses: actions/checkout@master
+        uses: thedoctor0/zip-release@master
         with:
           filename: 'release.zip'
           exclusions: '*.git* /*node_modules/* /*src/* /*server/* tsconfig.json webpack.config.js babel.config.js .nvmrc .gitignore /*.github/*'
