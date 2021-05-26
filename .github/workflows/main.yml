@@ -26,14 +26,14 @@ jobs:
       - uses: actions/checkout@v2
 
       - name: install dev
-        uses: sergioramos/yarn-actions@v6
+        uses: Borales/actions-yarn@v2.3.0
         with:
-          args: yarn install
+          cmd: install
           
       - name: build dist
-        uses: sergioramos/yarn-actions@v6
+        uses: Borales/actions-yarn@v2.3.0
         with:
-          args: yarn run build
+          cmd: build
           
       - name: copy to output
         run: mkdir output && mv dist output && mv package.json output
