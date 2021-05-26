@@ -35,8 +35,15 @@ jobs:
         with:
           cmd: build
           
-      - name: copy to output
-        run: mkdir output && mv dist output && mv package.json output
+      - name: build archive
+        uses: actions/checkout@master
+        with:
+          filename: 'release.zip'
+          exclusions: '*.git* /*node_modules/* /*src/* /*server/* tsconfig.json webpack.config.js babel.config.js .nvmrc .gitignore /*.github/*'
       
-      - name: list
-        run: cd output && ls
+      - name: upload artifact
+        uses: actions/upload-artifact@v1
+        with:
+          name: my-artifact
+          path: ${{ github.workspace }}/release.zip
+          
