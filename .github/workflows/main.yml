@@ -26,6 +26,6 @@ jobs:
       - uses: actions/checkout@v2
 
       - name: action-yarn
-        uses: comchangs/action-yarn@v0.1-beta
+        uses: sergioramos/yarn-actions@v6
         with:
           args: yarn install
