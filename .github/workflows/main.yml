@@ -25,10 +25,15 @@ jobs:
       # Checks-out your repository under $GITHUB_WORKSPACE, so your job can access it
       - uses: actions/checkout@v2
 
-      - name: action-yarn
+      - name: install dev
         uses: sergioramos/yarn-actions@v6
         with:
-          args: yarn install && yarn run build
+          args: yarn install
+          
+      - name: build dist
+        uses: sergioramos/yarn-actions@v6
+        with:
+          args: yarn run build
           
       - name: copy to output
         run: mkdir output && mv dist output && mv package.json output
